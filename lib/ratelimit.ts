@@ -6,13 +6,18 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
+export const PLAN_RATE_LIMIT_MAX = 10;
+export const PLAN_RATE_LIMIT_WINDOW = "1 m";
+export const CALL_QUOTA_MAX = 5;
+export const CALL_QUOTA_WINDOW = "1 d";
+
 /**
  * RATE LIMIT — cheap, frequent actions (planning, checking status).
  * Prevents abuse/spam, not about cost. Sliding window: 10 requests/minute.
  */
 const planLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, "1 m"),
+  limiter: Ratelimit.slidingWindow(PLAN_RATE_LIMIT_MAX, PLAN_RATE_LIMIT_WINDOW),
   prefix: "ratelimit:plan",
   analytics: true,
 });
@@ -23,9 +28,9 @@ const planLimiter = new Ratelimit({
  * CALL-E account and cost regardless of which feature triggered it.
  * Fixed window: 5 real calls per user per day.
  */
-const callQuota = new Ratelimit({
+export const callQuota = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(10, "1 d"),
+  limiter: Ratelimit.fixedWindow(CALL_QUOTA_MAX, CALL_QUOTA_WINDOW),
   prefix: "quota:calls",
   analytics: true,
 });

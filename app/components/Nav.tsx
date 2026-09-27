@@ -17,13 +17,34 @@ export default function Nav() {
   const pathname = usePathname();
   const [email, setEmail] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [quotaRemaining, setQuotaRemaining] = useState<number>(5);
+  const [quotaRemaining, setQuotaRemaining] = useState<number | null>(null);
+  const [quotaLimit, setQuotaLimit] = useState<number | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       setEmail(data.user?.email ?? null);
     });
+
+    fetch("/api/calle/quota")
+      .then(async (response) => {
+        if (!response.ok) {
+          return null;
+        }
+
+        return response.json();
+      })
+      .then((data) => {
+        if (!data) {
+          return;
+        }
+
+        setQuotaRemaining(data.remaining);
+        setQuotaLimit(data.limit);
+      })
+      .catch(() => {
+        // Leave the quota display blank until the next successful fetch.
+      });
   }, []);
 
   function isActive(href: string) {
@@ -70,11 +91,13 @@ export default function Nav() {
           <div className="hidden lg:flex items-center gap-1.5">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                quotaRemaining > 0 ? "bg-success" : "bg-error"
+                quotaRemaining !== null && quotaRemaining > 0 ? "bg-success" : "bg-error"
               }`}
             />
             <span className="font-body-meta text-body-meta text-on-surface-variant whitespace-nowrap">
-              {quotaRemaining}/5 calls left today
+              {quotaRemaining !== null && quotaLimit !== null
+                ? `${quotaRemaining}/${quotaLimit} calls left today`
+                : "Loading quota..."}
             </span>
           </div>
 
@@ -133,11 +156,13 @@ export default function Nav() {
           <div className="flex items-center gap-1.5 px-3 pt-space-sm mt-space-xs border-t border-border-hairline">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                quotaRemaining > 0 ? "bg-success" : "bg-error"
+                quotaRemaining !== null && quotaRemaining > 0 ? "bg-success" : "bg-error"
               }`}
             />
             <span className="font-body-meta text-body-meta text-on-surface-variant">
-              {quotaRemaining}/5 calls left today
+              {quotaRemaining !== null && quotaLimit !== null
+                ? `${quotaRemaining}/${quotaLimit} calls left today`
+                : "Loading quota..."}
             </span>
           </div>
         </div>

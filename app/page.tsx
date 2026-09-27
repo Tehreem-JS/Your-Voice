@@ -252,7 +252,7 @@ export default function DashboardPage() {
 
                 {/* Card 5: Relay a Message */}
                 <Link
-                  href="/test-emergency"
+                  href="/templates?t=relay_message"
                   className="group relative flex flex-col justify-between p-5 rounded-xl bg-surface-container-lowest border border-border-hairline shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer"
                 >
                   <div className="space-y-space-md">
